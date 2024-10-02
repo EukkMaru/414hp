@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import base64
 
 def encode_base64(data):

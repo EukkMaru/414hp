@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 def generate_rsa_keypair():
     pass
 

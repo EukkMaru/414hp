@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import json
 
 def create_message(opcode, msg_type, **kwargs):

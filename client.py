@@ -1,3 +1,5 @@
+ #! PLEASE DO NOT USE NON-ASCII CHARACTERS (KOREAN) IN server.py AND client.py
+
 import socket
 import argparse
 import logging
