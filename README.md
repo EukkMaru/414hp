@@ -2,6 +2,6 @@
 
 ```cpp
 if(goingToCrash()) {
-    dont();
+    dont();;
 }
 ```
