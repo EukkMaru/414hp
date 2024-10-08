@@ -1,4 +1,4 @@
-![header](https://capsule-render.vercel.app/api?type=venom&color=timeGradient&height=150&section=header&text=Mathematical%20Foundation%20of%20Computer%20Science&fontSize=30&animation=twinkling&fontColor=000000)
+![header]( https://capsule-render.vercel.app/api?type=venom&color=timeGradient&height=150&section=header&text=%20Mathematical%20Foundation%20of%20Computer%20Science&fontSize=30&animation=twinkling&fontColor=000000&stroke=FFFFFF&strokeWidth=0.5)
 
 ## Team Projects I (Cryptography)
 
