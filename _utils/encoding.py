@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 
 __all__ = ['int_to_bytes', 'bytes_to_int', 'serialize_key', 'deserialize_key']
 
@@ -9,16 +10,15 @@ def bytes_to_int(xbytes: bytes) -> int:
     return int.from_bytes(xbytes, byteorder='big')
 
 def serialize_key(key: dict) -> str:
-    return ':'.join(f"{k}:{int_to_bytes(v).hex()}" for k, v in key.items())
+    return ':'.join(f"{k}:{v}" for k, v in key.items())
 
 def deserialize_key(key_str: str) -> dict:
     key_dict = {}
-    for item in key_str.split(':'):
-        if not item:
-            continue
-        if ':' in item:
-            k, v = item.split(':')
-            key_dict[k] = bytes_to_int(bytes.fromhex(v))
+    parts = key_str.split(':')
+    for i in range(0, len(parts), 2):
+        if i + 1 < len(parts):
+            key_dict[parts[i]] = int(parts[i+1])
+    return key_dict
     return key_dict
 
 if __name__ == "__main__":

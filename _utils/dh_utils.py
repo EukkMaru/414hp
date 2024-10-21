@@ -1,5 +1,5 @@
 import random
-from math_utils import mod_exp, generate_prime
+from .math_utils import mod_exp, generate_prime
 
 __all__ = [
     "generate_dh_params",
