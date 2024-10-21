@@ -2,12 +2,12 @@ import socket
 import argparse
 import logging
 
-from .utils import rsa_utils as rsa
-from .utils import dh_utils as dh
-from .utils import symmetric as sym
-from .utils import math_utils as math
-from .utils import encoding as encoding
-from .utils import message_utils as messaging
+from _utils import rsa_utils as rsa
+from _utils import dh_utils as dh
+from _utils import symmetric as sym
+from _utils import math_utils as math
+from _utils import encoding as encoding
+from _utils import message_utils as messaging
 
 def run(addr, port):
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
