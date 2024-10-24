@@ -19,7 +19,6 @@ def deserialize_key(key_str: str) -> dict:
         if i + 1 < len(parts):
             key_dict[parts[i]] = int(parts[i+1])
     return key_dict
-    return key_dict
 
 if __name__ == "__main__":
     original_int = 123456789

@@ -151,14 +151,17 @@ def generate_prime(bits: int) -> int:
 
 def mod_exp(base: int, exponent: int, modulus: int) -> int:
     #* base^exponent mod modulus의 값을 계산하는 알고리즘
-    result = 1
-    base = base % modulus
-    while exponent > 0:
-        if exponent % 2 == 1:
-            result = (result * base) % modulus
-        exponent = exponent >> 1
-        base = (base * base) % modulus
-    return result
+    # result = 1
+    # base = base % modulus
+    # while exponent > 0:
+    #     if exponent % 2 == 1:
+    #         result = (result * base) % modulus
+    #     exponent = exponent >> 1
+    #     base = (base * base) % modulus
+    # return result
+    
+    #* The code wasn't working as intended, replaced with pow()
+    return pow(base, exponent, modulus)
 
 def _extended_gcd(a: int, b: int) -> Tuple[int, int, int]:
     #* Extended Euclidean Algorithm

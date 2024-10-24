@@ -14,21 +14,32 @@ from _utils import math_utils as math
 from _utils import encoding as encoding
 from _utils import message_utils as messaging
 
-def handle_protocol_1(conn):
-    # RSA Key Generation
+public_key, private_key, p, q = None, None, None, None
+
+def initialize():
+    global public_key, private_key, p, q
+
     public_key, private_key, p, q = rsa.generate_rsa_keypair()
+
+def handle_protocol_1(conn):
+    logging.info("Initiating protocol 1: RSA Key Generation")
+    global public_key, private_key, p, q
+    initialize()
+    
     response = messaging.create_message(0, "RSAKey", 
                                         private=encoding.serialize_key(private_key),
                                         public=encoding.serialize_key(public_key),
                                         parameter={"p": str(p), "q": str(q)})
+    logging.debug(f"Sending response: {response}")
     messaging.send_message(conn, response)
 
 def handle_protocol_2(conn):
-    # RSA Encryption and AES
-    public_key, private_key, _, _ = rsa.generate_rsa_keypair()
+    global public_key, private_key, p, q
+    
     response = messaging.create_message(1, "RSA", 
                                         public=encoding.serialize_key(public_key),
                                         parameter={"n": str(public_key['n'])})
+    logging.debug(f"Sending RSA response: {response}")
     messaging.send_message(conn, response)
 
     key_message = messaging.receive_message(conn)
@@ -37,26 +48,30 @@ def handle_protocol_2(conn):
         return
 
     encrypted_key = base64.b64decode(key_message['encryption'])
-    aes_key = rsa.rsa_decrypt(encrypted_key, private_key)
+    logging.debug(f"Received Encrypted key: {encrypted_key}")
+    aes_key = rsa.rsa_decrypt(encrypted_key, private_key, True)
+    logging.debug(f"Decrypted AES key: {aes_key}")
 
     # AES message exchange
     aes_message = messaging.receive_message(conn)
     if aes_message['opcode'] != 2 or aes_message['type'] != "AES":
         logging.error("Unexpected message from client")
         return
-
+    
+    logging.debug(f"Received AES message: {aes_message}")
     decrypted_message = sym.aes_decrypt(aes_key, aes_message['encryption'])
-    logging.info(f"Received decrypted message: {decrypted_message.decode()}")
+    logging.info(f"Received decrypted message: {decrypted_message.decode('ascii')}")
 
-    response_message = "Hello from server!"
-    encrypted_response = sym.aes_encrypt(aes_key, response_message.encode())
+    response_message = "Server Response Message"
+    encrypted_response = sym.aes_encrypt(aes_key, response_message.encode('ascii'))
     response = messaging.create_message(2, "AES", encryption=encrypted_response)
     messaging.send_message(conn, response)
 
 def handle_protocol_3(conn):
-    # Diffie-Hellman Key Exchange and AES
     p, g = dh.generate_dh_params(2048)  # Use appropriate bit length
+    logging.debug(f"p: {p}, g: {g}")
     private_key, public_key = dh.generate_dh_keypair(p, g)
+    logging.debug(f"Private key: {private_key}\n Public key: {public_key}")
     
     response = messaging.create_message(1, "DH", 
                                         public=encoding.serialize_key({'key': public_key}),
@@ -80,7 +95,7 @@ def handle_protocol_3(conn):
         return
 
     decrypted_message = sym.aes_decrypt(aes_key, aes_message['encryption'])
-    logging.info(f"Received decrypted message: {decrypted_message.decode()}")
+    logging.info(f"Received decrypted message: {decrypted_message.decode('ascii')}")
 
     response_message = "Hello from server (DH)!"
     encrypted_response = sym.aes_encrypt(aes_key, response_message.encode())

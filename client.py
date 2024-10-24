@@ -14,7 +14,6 @@ from _utils import encoding as encoding
 from _utils import message_utils as messaging
 
 def run_protocol_1(conn):
-    # RSA Key Generation protocol
     request = messaging.create_message(0, "RSAKey")
     messaging.send_message(conn, request)
     
@@ -54,27 +53,37 @@ def run_protocol_1(conn):
         logging.error(f"Error processing RSA keypair: {e}")
         logging.exception("Exception details:")
 
-def run_protocol_2(conn):
-    
+def run_protocol_2(conn, msg):
+    if not msg or not isinstance(msg, str):
+        logging.error("Invalid message")
+        raise ValueError("Invalid message")
     request = messaging.create_message(0, "RSA")
     messaging.send_message(conn, request)
     
     response = messaging.receive_message(conn)
+    logging.debug(f"Received response: {response}") if response else logging.error("No response received")
     if response['opcode'] != 1 or response['type'] != "RSA":
         logging.error("Unexpected response from server")
         return
 
     public_key = encoding.deserialize_key(response['public'])
+    # logging.debug(f"Retrieved public key: {public_key} \n Type: {type(public_key)}")
+    # public key has been confirmed to be a functional json object
     n = int(response['parameter']['n'])
 
     aes_key = sym.generate_aes_key()
+    logging.debug(f"AES key: {aes_key}")
+    logging.debug(f"AES key (b64): {base64.b64encode(str(aes_key).encode('ascii')).decode('ascii')}")
     encrypted_key = rsa.rsa_encrypt(aes_key, public_key)
+    logging.debug(f"Encrypted key: {encrypted_key}")
+    logging.debug(f"Encrypted key (b64): {base64.b64encode(str(encrypted_key).encode('ascii')).decode('ascii')}")
     
-    key_message = messaging.create_message(2, "RSA", encryption=base64.b64encode(encrypted_key).decode())
+    key_message = messaging.create_message(2, "RSA", encryption=base64.b64encode(str(encrypted_key).encode('ascii')).decode('ascii'))
+    logging.debug(f"Sending AES key message: {key_message}")
     messaging.send_message(conn, key_message)
 
     
-    message = "Hello"
+    message = msg
     encrypted_message = sym.aes_encrypt(aes_key, message.encode())
     aes_message = messaging.create_message(2, "AES", encryption=encrypted_message)
     messaging.send_message(conn, aes_message)
@@ -85,12 +94,12 @@ def run_protocol_2(conn):
         return
 
     decrypted_message = sym.aes_decrypt(aes_key, response['encryption'])
-    logging.info(f"Received decrypted message: {decrypted_message.decode()}")
+    logging.info(f"Received decrypted message: {decrypted_message.decode('ascii')}")
 
 def run_protocol_3(conn):
-    
     request = messaging.create_message(0, "DH")
     messaging.send_message(conn, request)
+    logging.debug(f"Sent DH request: {request}")
     
     response = messaging.receive_message(conn)
     if response['opcode'] != 1 or response['type'] != "DH":
@@ -126,7 +135,7 @@ def run_protocol_3(conn):
         return
 
     decrypted_message = sym.aes_decrypt(aes_key, response['encryption'])
-    logging.info(f"Received decrypted message: {decrypted_message.decode()}")
+    logging.info(f"Received decrypted message: {decrypted_message.decode('ascii')}")
 
 def run_protocol_4_1(conn):
     
@@ -172,6 +181,9 @@ def run(addr, port):
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     conn.connect((addr, port))
     logging.info("Client is connected to {}:{}".format(addr, port))
+    
+    logging.debug("Starting protocol 1: RSA Key Generation")
+    run_protocol_1(conn)
 
     try:
         while True:
@@ -189,7 +201,8 @@ def run(addr, port):
                 if choice == '1':
                     run_protocol_1(conn)
                 elif choice == '2':
-                    run_protocol_2(conn)
+                    msg = input("Enter message to encrypt: ")
+                    run_protocol_2(conn, msg)
                 elif choice == '3':
                     run_protocol_3(conn)
                 elif choice == '4_1':

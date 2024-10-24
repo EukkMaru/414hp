@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: ascii -*-
 
 import json
 import base64
@@ -24,7 +24,7 @@ def parse_message(json_str):
     message = json.loads(json_str)
     for key in ['public', 'private', 'encryption']:
         if key in message:
-            message[key] = base64.b64decode(message[key]).decode()
+            message[key] = base64.b64decode(message[key]).decode('ascii')
     return message
 
 def send_message(sock, message):
