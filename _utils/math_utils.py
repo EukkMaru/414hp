@@ -6,6 +6,11 @@ __all__ = ["is_prime", "generate_prime", "mod_exp", "mod_inverse", "gcd", "discr
 # def _new_func():
 
 # def is_prime(n, size): 
+
+def gauss_func(n: float) -> int:
+    return int(n) 
+
+
 def is_prime(n: int) -> bool:
     pass
 
