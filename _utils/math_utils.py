@@ -30,7 +30,6 @@ def is_prime_1(n: int) -> bool: # Trial Devision
             return False
     return True
 
-
 def is_prime_2(n: int) -> bool: # fermat's primarily test
     if n <= 1:
         return False
@@ -38,7 +37,7 @@ def is_prime_2(n: int) -> bool: # fermat's primarily test
         return True
     
     for i in range(2, n+1):
-        if is_generater(i) == True:
+        if is_generater(i, n) == True:
             return i
         break
 
@@ -47,7 +46,7 @@ def is_prime_2(n: int) -> bool: # fermat's primarily test
     else:
         return False
     
-def is_prime_3(n: int) -> bool:
+def is_prime_3(n: int) -> bool: #Miller-Rabin primarily test
     if n <= 1 or n % 2 == 0:
         return False
     if n == 2 or n == 3:
@@ -84,7 +83,6 @@ def EEA(a: int, b: int):
     
     return a, x_0, y_0
 
-
 def is_relative_prime(a:int, b:int) -> bool:
     if EEA(a, b)[0] == 1:
         return True
@@ -101,7 +99,6 @@ def mod_inverse(a, m):
         
 def generate_prime(bytes: int=2) -> int:
     ret = []
-
     for i in range(2, 2**(8*bytes)):
         if is_prime_1(i) == True: # You can choose primarily test
             ret.append(i)
@@ -124,6 +121,18 @@ def mod_inverse(a, m):
 
 def gcd(a, b):
     return EEA(a, b)[0]
+
+def generate_relative_prime(n: int) -> int:
+    ret = []
+    for i in range(2, n+1):
+        if is_relative_prime(i, n) == 1:
+            ret.append(i)
+        else:
+            continue
+    
+    p = random.choice(ret)
+    return p
+
 
 def discrete_log(g, h, p):
     pass
