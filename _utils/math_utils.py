@@ -11,13 +11,16 @@ __all__ = ["is_prime", "generate_prime", "mod_exp", "mod_inverse", "gcd", "discr
 def gauss_func(n: float) -> int:
     return int(n) 
 
-def is_generater(i:int, n: int) -> bool: #(g, p)
+
+def is_generater(i:int, n: int) -> bool:
     if n <= 1:
         return False
     a = set()
     for j in range(1,n):
         mod = pow(i, j, n)
         a.add(mod)
+
+    return len(a) == n - 1 
 
 def is_prime_1(n: int) -> bool: # Trial Devision
     if n <= 1:
