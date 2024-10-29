@@ -92,14 +92,6 @@ def is_relative_prime(a:int, b:int) -> bool:
     else:
         return False
 
-def mod_inverse(a, m):
-    if is_relative_prime(a, m) == True:
-        k = EEA(a, m)[1]
-        if k < 0:
-            return m + k
-        else:
-            return k
-        
 def generate_prime(bytes: int=2) -> int:
     ret = []
     for i in range(2, 2**(8*bytes)):
