@@ -43,8 +43,10 @@ def aes_decrypt(key: Union[bytes, List[bytes]], ciphertext:Union[str, bytes]) ->
     
     return plaintext.decode('ascii')
 
-def generate_aes_key_from_dh(dh_shared_secret):
-    return dh_shared_secret[:32]
+def generate_aes_key_from_dh(dh_shared_secret: bytes) -> bytes:
+    # shared secret size is 2 bytes (express shared secret in bytes)
+    # repeat that 2 bytes 16 times to get 32 bytes (256 bits)
+    return reduce(lambda x, y: x + y, [dh_shared_secret] * 16)
 
 # Test the functions if this script is run directly
 if __name__ == "__main__":
@@ -70,6 +72,7 @@ if __name__ == "__main__":
     print("Encryption and decryption successful!")
 
     # Test DH key derivation
-    dh_secret = get_random_bytes(256)  # Simulate a DH shared secret
+    dh_secret = get_random_bytes(2)  # Simulate a DH shared secret
+    print(f"Generated DH shared secret: {dh_secret}")
     aes_key = generate_aes_key_from_dh(dh_secret)
-    print(f"AES key derived from DH secret: {aes_key.hex()}")
+    print(f"AES key derived from DH secret: {aes_key}\nSize: {len(aes_key)}")

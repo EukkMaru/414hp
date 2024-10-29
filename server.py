@@ -14,6 +14,8 @@ from _utils import math_utils as math
 from _utils import encoding as encoding
 from _utils import message_utils as messaging
 
+args = None
+
 # public_key, private_key, p, q = None, None, None, None
 
 # def initialize():
@@ -73,75 +75,59 @@ def handle_protocol_2(conn):
     logging.info(f"Received decrypted message: {decrypted_message}")
 
 def handle_protocol_3(conn):
+    global args
     p, g = dh.generate_dh_params(2048)  # Use appropriate bit length
+    if args.error == 1:
+        p = 420
+    elif args.error == 2:
+        g = 1
     logging.debug(f"p: {p}, g: {g}")
     private_key, public_key = dh.generate_dh_keypair(p, g)
+    # private_key = a, public_key = g^a mod p
     logging.debug(f"Private key: {private_key}\n Public key: {public_key}")
     
     response = messaging.create_message(1, "DH", 
-                                        public=encoding.serialize_key({'key': public_key}),
-                                        parameter={"p": str(p), "g": str(g)})
+                                        public=encoding.strencode(str(public_key)),
+                                        parameter={"p": p, "g": g})
     logging.debug(f"Sending RSA response: {response}")
     messaging.send_message(conn, response)
 
     client_response = messaging.receive_message(conn)
+    if client_response['opcode'] == 3:
+        messaging.handle_error_message(client_response)
+        return
     if client_response['opcode'] != 1 or client_response['type'] != "DH":
         logging.error("Unexpected message from client")
         return
 
-    client_public = int(encoding.deserialize_key(client_response['public'])['key'])
+    client_public = int(encoding.strdecode(client_response['public']))
     shared_secret = dh.compute_dh_shared_secret(private_key, client_public, p)
-    aes_key = sym.generate_aes_key_from_dh(shared_secret)
+    aes_key = sym.generate_aes_key_from_dh(int.to_bytes(shared_secret, 2, 'big'))
+    logging.debug(f"Shared secret: {shared_secret}\nByte representation: {int.to_bytes(shared_secret, 2, 'big')}\nAES key: {aes_key.hex()}")
 
-    # AES message exchange
+    response_message = "Server DH Message" #서버의 메시지는 고정
+    encrypted_response = sym.aes_encrypt(aes_key, response_message)
+    response = messaging.create_message(2, "AES", encryption=encoding.byteencode(encrypted_response))
+    messaging.send_message(conn, response)
+    
     aes_message = messaging.receive_message(conn)
     if aes_message['opcode'] != 2 or aes_message['type'] != "AES":
         logging.error("Unexpected message from client")
         return
-
-    decrypted_message = sym.aes_decrypt(aes_key, aes_message['encryption'])
-    logging.info(f"Received decrypted message: {decrypted_message.decode('ascii')}")
-
-    response_message = "Hello from server (DH)!"
-    encrypted_response = sym.aes_encrypt(aes_key, response_message.encode())
-    response = messaging.create_message(2, "AES", encryption=encrypted_response)
-    messaging.send_message(conn, response)
-
-def handle_protocol_4_1(conn):
-    # DH with non-prime error
-    non_prime = 100  # An obviously non-prime number for demonstration
-    g = 2
-    response = messaging.create_message(1, "DH", 
-                                        public=encoding.serialize_key({'key': 1}),
-                                        parameter={"p": str(non_prime), "g": str(g)})
-    messaging.send_message(conn, response)
-
-    error_message = messaging.receive_message(conn)
-    if error_message['opcode'] == 3 and error_message['type'] == "error":
-        logging.info(f"Received expected error: {error_message['error']}")
-    else:
-        logging.error("Did not receive expected error message")
-
-def handle_protocol_4_2(conn):
-    # DH with incorrect generator error
-    p = dh.generate_prime(1024)  # Generate a prime number
-    incorrect_g = p  # Using p as g, which is not a proper generator
-    response = messaging.create_message(1, "DH", 
-                                        public=encoding.serialize_key({'key': 1}),
-                                        parameter={"p": str(p), "g": str(incorrect_g)})
-    messaging.send_message(conn, response)
-
-    error_message = messaging.receive_message(conn)
-    if error_message['opcode'] == 3 and error_message['type'] == "error":
-        logging.info(f"Received expected error: {error_message['error']}")
-    else:
-        logging.error("Did not receive expected error message")
+    
+    logging.debug(f"Received AES message: {aes_message}")
+    decrypted_message = sym.aes_decrypt(aes_key, base64.b64decode(aes_message['encryption'].encode('ascii')))
+    logging.info(f"Received decrypted message: {decrypted_message}")
 
 def handler(sock):
     try:
         while True:
+            message = None
             try:
                 message = messaging.receive_message(sock)
+                if not message or message is None:
+                    logging.info("Client disconnected")
+                    break
                 logging.info(f"Received message: {message}")
                 if message['opcode'] == 0:
                     if message['type'] == "RSAKey":
@@ -151,7 +137,10 @@ def handler(sock):
                     elif message['type'] == "DH":
                         handle_protocol_3(sock)
             except json.JSONDecodeError as e:
-                logging.error(f"JSON Decode Error: {e}")
+                logging.error(f"JSON Decode Error: {e}, message: {message}")
+                if message is None:
+                    logging.info("Client disconnected")
+                    break
             except Exception as e:
                 logging.error(f"Error handling message: {e}")
     except Exception as e:
@@ -180,10 +169,12 @@ def command_line_args():
     parser.add_argument("-a", "--addr", metavar="<server's IP address>", help="server's IP address", type=str, default="0.0.0.0")
     parser.add_argument("-p", "--port", metavar="<server's open port>", help="server's port", type=int, required=True)
     parser.add_argument("-l", "--log", metavar="<log level (DEBUG/INFO/WARNING/ERROR/CRITICAL)>", help="Log level (DEBUG/INFO/WARNING/ERROR/CRITICAL)", type=str, default="INFO")
+    parser.add_argument("-e", "--error", metavar="<error scenario>", help="Protocol 4 Scenario (1/2)", type=int, default=0)
     args = parser.parse_args()
     return args
 
 def main():
+    global args
     args = command_line_args()
     log_level = args.log
     logging.basicConfig(level=log_level)

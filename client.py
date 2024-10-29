@@ -103,74 +103,43 @@ def run_protocol_3(conn):
 
     p = int(response['parameter']['p'])
     g = int(response['parameter']['g'])
-    server_public = int(encoding.deserialize_key(response['public'])['key'])
+    server_public = int(encoding.strdecode(response['public']))
+    logging.debug(f"Received DH parameters: p: {p}, g: {g}")
 
-    if not math.is_prime(p) or not dh.verify_dh_generator(g, p):
-        error_msg = messaging.create_message(3, "error", error="Invalid DH parameters")
+    if not math.is_prime(p):
+        error_msg = messaging.create_message(3, "error", error="Invalid DH parameters: p is not prime")
         messaging.send_message(conn, error_msg)
-        logging.error("Invalid DH parameters received")
+        logging.error(f"Invalid DH parameters received / non-prime p({p})")
+        return
+    if not dh.verify_dh_generator(g, p):
+        error_msg = messaging.create_message(3, "error", error="Invalid DH parameters: g is not a generator")
+        messaging.send_message(conn, error_msg)
+        logging.error(f"Invalid DH parameters received / non-generator g({g})")
         return
 
     private_key, public_key = dh.generate_dh_keypair(p, g)
-    dh_response = messaging.create_message(1, "DH", public=encoding.serialize_key({'key': public_key}))
+    # private_key = b, public_key = g^b mod p
+    dh_response = messaging.create_message(1, "DH", public=encoding.strencode(str(public_key)), parameter={"p": p, "g": g})
+    logging.debug(f"Sending DH response: {dh_response}")
     messaging.send_message(conn, dh_response)
 
     shared_secret = dh.compute_dh_shared_secret(private_key, server_public, p)
-    aes_key = sym.generate_aes_key_from_dh(shared_secret)
-
-    
-    message = "Hello from client (DH)!"
-    encrypted_message = sym.aes_encrypt(aes_key, message.encode())
-    aes_message = messaging.create_message(2, "AES", encryption=encrypted_message)
-    messaging.send_message(conn, aes_message)
+    aes_key = sym.generate_aes_key_from_dh(int.to_bytes(shared_secret, 2, 'big'))
+    logging.debug(f"Shared Secret: {shared_secret}\nByte Representation: {int.to_bytes(shared_secret, 2, 'big')}\nAES key: {aes_key.hex()}\nLength: {len(aes_key)}")
 
     response = messaging.receive_message(conn)
     if response['opcode'] != 2 or response['type'] != "AES":
         logging.error("Unexpected response from server")
         return
 
-    decrypted_message = sym.aes_decrypt(aes_key, response['encryption'])
-    logging.info(f"Received decrypted message: {decrypted_message.decode('ascii')}")
-
-def run_protocol_4_1(conn):
+    decrypted_message = sym.aes_decrypt(aes_key, base64.b64decode(response['encryption'].encode('ascii')))
+    logging.info(f"Received decrypted message: {decrypted_message}")
     
-    request = messaging.create_message(0, "DH")
-    messaging.send_message(conn, request)
-    
-    response = messaging.receive_message(conn)
-    if response['opcode'] != 1 or response['type'] != "DH":
-        logging.error("Unexpected response from server")
-        return
-
-    p = int(response['parameter']['p'])
-    g = int(response['parameter']['g'])
-
-    if not math.is_prime(p):
-        error_msg = messaging.create_message(3, "error", error="incorrect prime number")
-        messaging.send_message(conn, error_msg)
-        logging.error("Non-prime number received in DH parameters")
-    else:
-        logging.info("Received a prime number, which was not expected for this error case")
-
-def run_protocol_4_2(conn):
-    
-    request = messaging.create_message(0, "DH")
-    messaging.send_message(conn, request)
-    
-    response = messaging.receive_message(conn)
-    if response['opcode'] != 1 or response['type'] != "DH":
-        logging.error("Unexpected response from server")
-        return
-
-    p = int(response['parameter']['p'])
-    g = int(response['parameter']['g'])
-
-    if not dh.verify_dh_generator(g, p):
-        error_msg = messaging.create_message(3, "error", error="incorrect generator")
-        messaging.send_message(conn, error_msg)
-        logging.error("Incorrect generator received in DH parameters")
-    else:
-        logging.info("Received a correct generator, which was not expected for this error case")
+    message = input("Enter message: ")
+    encrypted_message: bytes = sym.aes_encrypt(aes_key, message)
+    aes_message = messaging.create_message(2, "AES", encryption=encoding.byteencode(encrypted_message))
+    logging.debug(f"Sending AES message: {aes_message}")
+    messaging.send_message(conn, aes_message)
 
 def run(addr, port, autorun):
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -191,7 +160,7 @@ def run(addr, port, autorun):
             print("4_2: DH with incorrect generator error")
             print("5: Exit")
 
-            choice = input("Enter your choice (1-4_2, or 5 to exit): ")
+            choice = input("Enter your choice (1-3, or 5 to exit): ")
 
             try:
                 if choice == '1':
@@ -200,10 +169,6 @@ def run(addr, port, autorun):
                     run_protocol_2(conn)
                 elif choice == '3':
                     run_protocol_3(conn)
-                elif choice == '4_1':
-                    run_protocol_4_1(conn)
-                elif choice == '4_2':
-                    run_protocol_4_2(conn)
                 elif choice == '5':
                     print("Exiting...")
                     break

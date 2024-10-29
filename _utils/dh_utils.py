@@ -9,8 +9,8 @@ __all__ = [
 ]
 
 
-def generate_dh_params(bits):
-    p = generate_prime(bits)
+def generate_dh_params(bits: int=4) -> tuple[int, int]:
+    p = generate_prime(bits, set_range=True)
 
     for g in [2, 3, 5]:
         if verify_dh_generator(g, p):
@@ -23,13 +23,13 @@ def generate_dh_params(bits):
     raise ValueError("Could not find a suitable generator")
 
 
-def generate_dh_keypair(p, g):
+def generate_dh_keypair(p: int, g: int) -> tuple[int, int]:
     private_key = random.randint(2, p - 2)
     public_key = pow(g, private_key, p)
     return private_key, public_key
 
 
-def compute_dh_shared_secret(private_key, other_public_key, p):
+def compute_dh_shared_secret(private_key: int, other_public_key: int, p: int) -> int:
     return pow(other_public_key, private_key, p)
 
 def verify_dh_generator(g, p):
