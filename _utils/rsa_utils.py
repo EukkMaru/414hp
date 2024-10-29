@@ -2,33 +2,34 @@
 
 import random
 import logging
-from .math_utils import mod_inverse, mod_exp, generate_prime, is_prime
+from .math_utils import mod_inverse, generate_prime, is_prime, is_generator, gcd
 
-def generate_rsa_keypair(bits=2048):
-    p = generate_prime(bits // 2)
-    q = generate_prime(bits // 2)
+def generate_rsa_keypair(bits=4):
+    p = generate_prime(bits // 2, set_range=True)
+    q = generate_prime(bits // 2, set_range=True)
+    if p == q:
+        while p != q:
+            q = generate_prime(bits // 2, set_range=True)
     n = p * q
     phi = (p - 1) * (q - 1)
     
-    e = 65537  # Commonly used value for e
+    while True:
+        e = random.randint(2, phi - 1)
+        if gcd(e, phi) == 1:
+            break
     d = mod_inverse(e, phi)
     
-    public_key = {'n': n, 'e': e}
-    private_key = {'n': n, 'd': d}
+    public_key = e
+    private_key = d
     
     return public_key, private_key, p, q
 
 def verify_rsa_keypair(public_key, private_key, p, q):
-    n = public_key['n']
-    e = public_key['e']
-    d = private_key['d']
+    n = p * q
+    e = public_key
+    d = private_key
     
     logging.debug(f"Verifying RSA keypair: n={n}, e={e}, d={d}, p={p}, q={q}")
-
-    calculated_n = p * q
-    if n != calculated_n:
-        logging.error(f"n ({n}) does not equal p*q ({calculated_n})")
-        return False
     
     phi = (p - 1) * (q - 1)
     logging.debug(f"Calculated phi: {phi}")
@@ -43,12 +44,12 @@ def verify_rsa_keypair(public_key, private_key, p, q):
         return False
     
     # Test encryption/decryption
-    message = random.getrandbits(64)
+    message = random.getrandbits(4)
     logging.debug(f"Test message: {message}")
     try:
-        encrypted = rsa_encrypt(str(message), public_key)
+        encrypted = rsa_encrypt(str(message), public_key, n)
         logging.debug(f"Encrypted message: {encrypted}")
-        decrypted = int(rsa_decrypt(encrypted, private_key))
+        decrypted = int(rsa_decrypt(encrypted, private_key, n))
         logging.debug(f"Decrypted message: {decrypted}")
     except Exception as exc:
         logging.error(f"Error during encryption/decryption test: {exc}")
@@ -61,26 +62,24 @@ def verify_rsa_keypair(public_key, private_key, p, q):
     logging.debug("RSA keypair verified successfully")
     return True
 
-def rsa_encrypt(message: bytes, public_key):
+def rsa_encrypt(message: bytes, public_key, n):
+    e = public_key
     try:
-        n = public_key['n']
-        e = public_key['e']
         m: int = int.from_bytes(message, 'big') if type(message) is bytes else int.from_bytes(str(message).encode('ascii'), 'big')
         # m: int = int.from_bytes(message, 'big')
         if m >= n:
             raise ValueError("Message is too long")
         if type(m) is not int:
             raise ValueError("M is not int")
-    except Exception as e:
-        logging.error(f"Error during RSA encryption: {e}")
+    except Exception as err:
+        logging.error(f"Error during RSA encryption: {err}")
     finally:
         return pow(m, e, n) if type(m) is int else None
     
 
-def rsa_decrypt(ciphertext, private_key, return_bytes=False):
+def rsa_decrypt(ciphertext, private_key, n, return_bytes=False):
+    d = private_key
     try:
-        n = private_key['n']
-        d = private_key['d']
         # m: int = pow(ciphertext, d, n) if type(ciphertext) is int else pow(int.from_bytes(ciphertext, 'big'), d, n)
         if isinstance(ciphertext, str):
             ciphertext = int.from_bytes(ciphertext, 'big')
@@ -88,8 +87,8 @@ def rsa_decrypt(ciphertext, private_key, return_bytes=False):
             ciphertext = int(ciphertext)
         m: int = pow(ciphertext, d, n)
         logging.debug(f"TEST: int(ciphertext): {int(ciphertext)}")
-    except Exception as e:
-        logging.error(f"Error during RSA decryption: {e}")
+    except Exception as err:
+        logging.error(f"Error during RSA decryption: {err}")
     finally:
         try:
             return m.to_bytes((m.bit_length() + 7) // 8, 'big').decode('ascii') if not return_bytes else m.to_bytes((m.bit_length() + 7) // 8, 'big')
@@ -98,18 +97,22 @@ def rsa_decrypt(ciphertext, private_key, return_bytes=False):
 
 
 if __name__ == "__main__":
-    public_key, private_key = generate_rsa_keypair(1024)
+    public_key, private_key, p, q = generate_rsa_keypair()
     print("Public key:", public_key)
     print("Private key:", private_key)
+    print("p:", p)
+    print("q:", q)
+    
+    n = p * q
 
-    message = "Hello"
-    encrypted = rsa_encrypt(message, public_key)
-    decrypted = rsa_decrypt(encrypted, private_key)
+    message = "Hi"
+    encrypted = rsa_encrypt(message.encode('ascii'), public_key, n)
+    decrypted = rsa_decrypt(encrypted, private_key, n)
     print("Original message:", message)
     print("Encrypted message:", encrypted)
     print("Decrypted message:", decrypted)
 
-    p = generate_prime(512)
-    q = generate_prime(512)
+    p = generate_prime(2)
+    q = generate_prime(2)
     is_valid = verify_rsa_keypair(public_key, private_key, p, q)
     print("Keypair is valid:", is_valid)

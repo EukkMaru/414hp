@@ -5,8 +5,8 @@ from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 import base64
 
-def generate_aes_key():
-    return get_random_bytes(32)  # 32 bytes = 256 bits
+def generate_aes_key(as_list:bool = False):
+    return get_random_bytes(32) if not as_list else [bytes([b]) for b in get_random_bytes(32)] # 32 bytes = 256 bits
 
 def aes_encrypt(key, plaintext):
     """
@@ -46,8 +46,9 @@ def generate_aes_key_from_dh(dh_shared_secret):
 # Test the functions if this script is run directly
 if __name__ == "__main__":
     # Generate a random AES key
-    key = generate_aes_key()
-    print(f"Generated AES key: {key.hex()}")
+    key = generate_aes_key(True)
+    print(f"Generated AES key (list): {key}")
+    print(type(key[0]))
 
     # Test message
     message = "Hello, AES encryption using PyCryptodome!"

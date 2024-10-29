@@ -33,15 +33,15 @@ def run_protocol_1(conn):
         logging.debug(f"Public key: {response.get('public', 'Not found')}")
         logging.debug(f"Parameters: {response.get('parameter', 'Not found')}")
         
-        private_key = encoding.deserialize_key(response['private'])
-        public_key = encoding.deserialize_key(response['public'])
+        private_key = int(response['private'])
+        public_key = int(response['public'])
         p = int(response['parameter']['p'])
         q = int(response['parameter']['q'])
 
-        logging.info(f"Deserialized private key: {private_key}")
-        logging.info(f"Deserialized public key: {public_key}")
-        logging.debug(f"p: {p}")
-        logging.debug(f"q: {q}")
+        logging.info(f"Private key (d): {private_key}")
+        logging.info(f"Public key (e): {public_key}")
+        logging.info(f"p: {p}")
+        logging.info(f"q: {q}")
 
         if rsa.verify_rsa_keypair(public_key, private_key, p, q):
             logging.info("RSA keypair verified successfully")
@@ -66,22 +66,19 @@ def run_protocol_2(conn, msg):
         logging.error("Unexpected response from server")
         return
 
-    public_key = encoding.deserialize_key(response['public'])
-    # logging.debug(f"Retrieved public key: {public_key} \n Type: {type(public_key)}")
-    # public key has been confirmed to be a functional json object
+    public_key = int(response['public'])
     n = int(response['parameter']['n'])
 
-    aes_key = sym.generate_aes_key()
+    aes_key = sym.generate_aes_key(as_list=True)
     logging.debug(f"AES key: {aes_key}")
-    logging.debug(f"AES key (b64): {base64.b64encode(str(aes_key).encode('ascii')).decode('ascii')}")
-    encrypted_key = rsa.rsa_encrypt(aes_key, public_key)
+    encrypted_key = []
+    for k in aes_key:
+        encrypted_key.append(rsa.rsa_encrypt(k, public_key, n))
     logging.debug(f"Encrypted key: {encrypted_key}")
-    logging.debug(f"Encrypted key (b64): {base64.b64encode(str(encrypted_key).encode('ascii')).decode('ascii')}")
     
-    key_message = messaging.create_message(2, "RSA", encryption=base64.b64encode(str(encrypted_key).encode('ascii')).decode('ascii'))
+    key_message = messaging.create_message(2, "RSA", encrypted_key=encrypted_key)
     logging.debug(f"Sending AES key message: {key_message}")
     messaging.send_message(conn, key_message)
-
     
     message = msg
     encrypted_message = sym.aes_encrypt(aes_key, message.encode())
@@ -182,9 +179,8 @@ def run(addr, port):
     conn.connect((addr, port))
     logging.info("Client is connected to {}:{}".format(addr, port))
     
-    logging.debug("Starting protocol 1: RSA Key Generation")
-    run_protocol_1(conn)
-
+    # logging.debug("Starting protocol 1: RSA Key Generation")
+    # run_protocol_1(conn) # Autorun
     try:
         while True:
             print("\nChoose an action:")

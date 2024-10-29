@@ -2,7 +2,7 @@
 import random
 from typing import *
 
-__all__ = ["is_prime", "generate_prime", "mod_exp", "mod_inverse", "gcd", "discrete_log"]
+__all__ = ["is_prime", "is_generator", "generate_prime", "mod_inverse", "gcd", "discrete_log", "generate_relative_prime"]
 
 # def _new_func():
 
@@ -11,8 +11,7 @@ __all__ = ["is_prime", "generate_prime", "mod_exp", "mod_inverse", "gcd", "discr
 def gauss_func(n: float) -> int:
     return int(n) 
 
-
-def is_generater(i:int, n: int) -> bool:
+def is_generator(i:int, n: int) -> bool:
     if n <= 1:
         return False
     a = set()
@@ -40,7 +39,7 @@ def is_prime_2(n: int) -> bool: # fermat's primarily test
         return True
     
     for i in range(2, n+1):
-        if is_generater(i, n) == True:
+        if is_generator(i, n) == True:
             return i
         break
 
@@ -74,7 +73,7 @@ def is_prime_3(n: int) -> bool: #Miller-Rabin primarily test
             return False
     return True
 
-def EEA(a: int, b: int):
+def EEA(a: int, b: int) -> Tuple[int, int, int]:
     x_0, x_1 = 1, 0
     y_0, y_1 = 0, 1
 
@@ -87,40 +86,36 @@ def EEA(a: int, b: int):
     return a, x_0, y_0
 
 def is_relative_prime(a:int, b:int) -> bool:
-    if EEA(a, b)[0] == 1:
-        return True
-    else:
-        return False
-
-def mod_inverse(a, m):
-    if is_relative_prime(a, m) == True:
-        k = EEA(a, m)[1]
-        if k < 0:
-            return m + k
-        else:
-            return k
-        
-def generate_prime(bytes: int=2) -> int:
+    return EEA(a, b)[0] == 1
+               
+def generate_prime(bytes: int=2, set_range: bool=True) -> int:
     ret = []
-    for i in range(2, 2**(8*bytes)):
-        if is_prime_1(i) == True: # You can choose primarily test
+    target_range = range(2, 2**(8*bytes)) if not set_range else range(400, 501)
+    
+    for i in target_range:
+        if is_prime_1(i): # You can choose primality test
             ret.append(i)
-        elif is_prime_1(i) == False: # You can choose primarily test
+        else:
             continue
     
     p = random.choice(ret)
-    print(ret)
-    return ret
+    # print(ret)
+    print(p)
+    return p
 
-def mod_inverse(a, m):
-    if is_relative_prime(a, m) == True:
-        k = EEA(a, m)[1]
-        if k < 0:
-            return m + k
-        else:
-            return k
+def is_prime(n: int, strict: bool = True) -> bool:
+    return is_prime_1(n) if strict else is_prime_2(n)
+
+def mod_inverse(a: int, m: int) -> int:
+    if not is_relative_prime(a, m):
+        print("a and m is not relatively prime, so no inverse exist")
+        return None
+    
+    k = EEA(a, m)[1]
+    if k < 0:
+        return m + k
     else:
-        print("a and m is not relative prime, so inverse doesn't exist")
+        return k
 
 def gcd(a, b):
     return EEA(a, b)[0]

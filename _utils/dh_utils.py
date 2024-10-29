@@ -1,5 +1,5 @@
 import random
-from .math_utils import mod_exp, generate_prime
+from .math_utils import generate_prime
 
 __all__ = [
     "generate_dh_params",
@@ -25,12 +25,12 @@ def generate_dh_params(bits):
 
 def generate_dh_keypair(p, g):
     private_key = random.randint(2, p - 2)
-    public_key = mod_exp(g, private_key, p)
+    public_key = pow(g, private_key, p)
     return private_key, public_key
 
 
 def compute_dh_shared_secret(private_key, other_public_key, p):
-    return mod_exp(other_public_key, private_key, p)
+    return pow(other_public_key, private_key, p)
 
 def verify_dh_generator(g, p):
     if g <= 1 or g >= p:
@@ -38,7 +38,7 @@ def verify_dh_generator(g, p):
 
     factors = factorize(p - 1)
     for q in factors:
-        if mod_exp(g, (p - 1) // q, p) == 1:
+        if pow(g, (p - 1) // q, p) == 1:
             return False
     return True
 

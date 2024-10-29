@@ -14,22 +14,22 @@ from _utils import math_utils as math
 from _utils import encoding as encoding
 from _utils import message_utils as messaging
 
-public_key, private_key, p, q = None, None, None, None
+# public_key, private_key, p, q = None, None, None, None
 
-def initialize():
-    global public_key, private_key, p, q
+# def initialize():
+#     global public_key, private_key, p, q
 
-    public_key, private_key, p, q = rsa.generate_rsa_keypair()
+#     public_key, private_key, p, q = rsa.generate_rsa_keypair()
 
 def handle_protocol_1(conn):
     logging.info("Initiating protocol 1: RSA Key Generation")
-    global public_key, private_key, p, q
-    initialize()
+    public_key, private_key, p, q = rsa.generate_rsa_keypair()
+    # initialize()
     
     response = messaging.create_message(0, "RSAKey", 
-                                        private=encoding.serialize_key(private_key),
-                                        public=encoding.serialize_key(public_key),
-                                        parameter={"p": str(p), "q": str(q)})
+                                        private=private_key,
+                                        public=public_key,
+                                        parameter={"p": p, "q": q})
     logging.debug(f"Sending response: {response}")
     messaging.send_message(conn, response)
 
