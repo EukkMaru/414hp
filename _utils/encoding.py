@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import base64
 import warnings
 import functools
 
@@ -21,6 +22,22 @@ def int_to_bytes(x: int) -> bytes:
 
 def bytes_to_int(xbytes: bytes) -> int:
     return int.from_bytes(xbytes, byteorder='big')
+
+def strencode(source: str) -> str:
+    """문자열을 base64 문자열로 변환"""
+    return base64.b64encode(source.encode('ascii')).decode('ascii')
+
+def strdecode(source: str) -> str:
+    """base64 문자열을 원문으로 변환"""
+    return base64.b64decode(source.encode('ascii')).decode('ascii')
+
+def byteencode(source: bytes) -> str:
+    """비트스트링을 base64 문자열로 변환"""
+    return base64.b64encode(source).decode('ascii')
+
+def bytedecode(source: str) -> bytes:
+    """base64 문자열을 비트스트링로 변환"""
+    return base64.b64decode(source)
 
 @deprecated
 def serialize_key(key: dict) -> str:
@@ -53,3 +70,8 @@ if __name__ == "__main__":
     print(f"Serialized key: {serialized}")
     print(f"Deserialized key: {deserialized}")
     print(f"Serialization successful: {original_key == deserialized}")
+    
+    test_str = "Hello, World!"
+    print(f"Original string: {test_str}")
+    print(f"Base64 encoded string: {strencode(test_str)}")
+    print(f"Base64 decoded string: {strdecode(strencode(test_str))}")

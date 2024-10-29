@@ -21,7 +21,7 @@ def is_generator(i:int, n: int) -> bool:
 
     return len(a) == n - 1 
 
-def is_prime_1(n: int) -> bool: # Trial Devision
+def _is_prime_1(n: int) -> bool: # Trial Devision
     if n <= 1:
         return False
     if n == 2 or n == 3:
@@ -32,7 +32,7 @@ def is_prime_1(n: int) -> bool: # Trial Devision
             return False
     return True
 
-def is_prime_2(n: int) -> bool: # fermat's primarily test
+def _is_prime_2(n: int) -> bool: # fermat's primality test
     if n <= 1:
         return False
     if n == 2 or n == 3:
@@ -48,7 +48,7 @@ def is_prime_2(n: int) -> bool: # fermat's primarily test
     else:
         return False
     
-def is_prime_3(n: int) -> bool: #Miller-Rabin primarily test
+def _is_prime_3(n: int) -> bool: #Miller-Rabin primality test
     if n <= 1 or n % 2 == 0:
         return False
     if n == 2 or n == 3:
@@ -93,18 +93,18 @@ def generate_prime(bytes: int=2, set_range: bool=True) -> int:
     target_range = range(2, 2**(8*bytes)) if not set_range else range(400, 501)
     
     for i in target_range:
-        if is_prime_1(i): # You can choose primality test
+        if _is_prime_1(i): # You can choose primality test
             ret.append(i)
         else:
             continue
     
     p = random.choice(ret)
     # print(ret)
-    print(p)
+    # print(p)
     return p
 
 def is_prime(n: int, strict: bool = True) -> bool:
-    return is_prime_1(n) if strict else is_prime_2(n)
+    return _is_prime_1(n) if strict else _is_prime_2(n)
 
 def mod_inverse(a: int, m: int) -> int:
     if not is_relative_prime(a, m):

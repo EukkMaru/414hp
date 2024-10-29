@@ -53,10 +53,7 @@ def run_protocol_1(conn):
         logging.error(f"Error processing RSA keypair: {e}")
         logging.exception("Exception details:")
 
-def run_protocol_2(conn, msg):
-    if not msg or not isinstance(msg, str):
-        logging.error("Invalid message")
-        raise ValueError("Invalid message")
+def run_protocol_2(conn):
     request = messaging.create_message(0, "RSA")
     messaging.send_message(conn, request)
     
@@ -70,7 +67,7 @@ def run_protocol_2(conn, msg):
     n = int(response['parameter']['n'])
 
     aes_key = sym.generate_aes_key(as_list=True)
-    logging.debug(f"AES key: {aes_key}")
+    logging.debug(f"AES key: {aes_key}\nLength: {len(aes_key)}")
     encrypted_key = []
     for k in aes_key:
         encrypted_key.append(rsa.rsa_encrypt(k, public_key, n))
@@ -80,18 +77,19 @@ def run_protocol_2(conn, msg):
     logging.debug(f"Sending AES key message: {key_message}")
     messaging.send_message(conn, key_message)
     
-    message = msg
-    encrypted_message = sym.aes_encrypt(aes_key, message.encode())
-    aes_message = messaging.create_message(2, "AES", encryption=encrypted_message)
-    messaging.send_message(conn, aes_message)
-
     response = messaging.receive_message(conn)
     if response['opcode'] != 2 or response['type'] != "AES":
         logging.error("Unexpected response from server")
         return
 
-    decrypted_message = sym.aes_decrypt(aes_key, response['encryption'])
-    logging.info(f"Received decrypted message: {decrypted_message.decode('ascii')}")
+    decrypted_message: str = sym.aes_decrypt(aes_key, base64.b64decode(response['encryption'].encode('ascii')))
+    logging.info(f"Received decrypted message: {decrypted_message}")
+    
+    message = input("Enter message: ")
+    encrypted_message: bytes = sym.aes_encrypt(aes_key, message)
+    aes_message = messaging.create_message(2, "AES", encryption=encoding.byteencode(encrypted_message))
+    logging.debug(f"Sending AES message: {aes_message}")
+    messaging.send_message(conn, aes_message)
 
 def run_protocol_3(conn):
     request = messaging.create_message(0, "DH")
@@ -174,13 +172,15 @@ def run_protocol_4_2(conn):
     else:
         logging.info("Received a correct generator, which was not expected for this error case")
 
-def run(addr, port):
+def run(addr, port, autorun):
     conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     conn.connect((addr, port))
     logging.info("Client is connected to {}:{}".format(addr, port))
-    
-    # logging.debug("Starting protocol 1: RSA Key Generation")
-    # run_protocol_1(conn) # Autorun
+        
+    if autorun:
+        logging.debug("Starting protocol 1: RSA Key Generation")
+        run_protocol_1(conn) # Autorun
+        
     try:
         while True:
             print("\nChoose an action:")
@@ -197,8 +197,7 @@ def run(addr, port):
                 if choice == '1':
                     run_protocol_1(conn)
                 elif choice == '2':
-                    msg = input("Enter message to encrypt: ")
-                    run_protocol_2(conn, msg)
+                    run_protocol_2(conn)
                 elif choice == '3':
                     run_protocol_3(conn)
                 elif choice == '4_1':
@@ -226,6 +225,7 @@ def command_line_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--addr", metavar="<bob's address>", help="Bob's address", type=str, required=True)
     parser.add_argument("-p", "--port", metavar="<bob's port>", help="Bob's port", type=int, required=True)
+    parser.add_argument("-r", "--run", metavar="<autorun protocol 1?>", help="Autorun Protocol 1 upon script start", type=bool, default=False)
     parser.add_argument("-l", "--log", metavar="<log level (DEBUG/INFO/WARNING/ERROR/CRITICAL)>", help="Log level (DEBUG/INFO/WARNING/ERROR/CRITICAL)", type=str, default="INFO")
     args = parser.parse_args()
     return args
@@ -233,9 +233,10 @@ def command_line_args():
 def main():
     args = command_line_args()
     log_level = args.log
+    autorun = args.run
     logging.basicConfig(level=log_level)
 
-    run(args.addr, args.port)
+    run(args.addr, args.port, autorun)
     
 if __name__ == "__main__":
     main()

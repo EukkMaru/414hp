@@ -1,44 +1,47 @@
-# -*- coding: utf-8 -*-
+# -*- coding: ascii -*-
 
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
+from typing import Union, List
+from functools import reduce
 import base64
 
 def generate_aes_key(as_list:bool = False):
     return get_random_bytes(32) if not as_list else [bytes([b]) for b in get_random_bytes(32)] # 32 bytes = 256 bits
+    # return [b'|', b'y', b'S', b'\x00', b'\x00', b'\x85', b'\x0f', b'\x13', b'\x98', b'\xe1', b'\\', b'\x86', b'i', b'~', b'?', b'(', b'%', b'o', b'\xfe', b'\xc8', b'\x0c', b'\x13', b'\x94', b'\xab', b'c', b'q', b'\x0e', b'\xa3', b'\xaa', b'>', b'\x91', b'\x00']
+    # return [b'|', b'y', b'S', b'\x03', b'\x00', b'\x85', b'\x0f', b'\x13', b'\x98', b'\xe1', b'\\', b'\x86', b'i', b'~', b'?', b'(', b'%', b'o', b'\xfe', b'\xc8', b'\x0c', b'\x13', b'\x94', b'\xab', b'c', b'q', b'\x0e', b'\xa3', b'\xaa', b'>', b'\x91', b'\x00']
 
-def aes_encrypt(key, plaintext):
-    """
-    Encrypt the plaintext using AES in ECB mode with PKCS7 padding.
-    
-    :param key: 256-bit key for AES encryption
-    :param plaintext: The message to encrypt (string or bytes)
-    :return: Base64 encoded string of ciphertext
-    """
+
+def aes_encrypt(key: Union[bytes, List[bytes]], plaintext: Union[str, bytes]) -> bytes:
     if isinstance(plaintext, str):
         plaintext = plaintext.encode()
+        
+    if isinstance(key, list):
+        if not all(isinstance(k, bytes) for k in key):
+            raise TypeError("Key must be a list of bytes")
+        key = reduce(lambda x, y: x + y, key)
     
     cipher = AES.new(key, AES.MODE_ECB)
     padded_data = pad(plaintext, AES.block_size)
     ciphertext = cipher.encrypt(padded_data)
     
-    return base64.b64encode(ciphertext).decode('utf-8')
+    return ciphertext
 
-def aes_decrypt(key, ciphertext):
-    """
-    Decrypt the ciphertext using AES in ECB mode with PKCS7 padding.
-    
-    :param key: 256-bit key for AES decryption
-    :param ciphertext: Base64 encoded string of encrypted message
-    :return: Decrypted message as a string
-    """
-    ciphertext = base64.b64decode(ciphertext)
+def aes_decrypt(key: Union[bytes, List[bytes]], ciphertext:Union[str, bytes]) -> str:
+    if isinstance(ciphertext, str):
+        ciphertext = ciphertext.encode()
+        
+    if isinstance(key, list):
+        if not all(isinstance(k, bytes) for k in key):
+            raise TypeError("Key must be a list of bytes")
+        key = reduce(lambda x, y: x + y, key)
+
     cipher = AES.new(key, AES.MODE_ECB)
     padded_plaintext = cipher.decrypt(ciphertext)
     plaintext = unpad(padded_plaintext, AES.block_size)
     
-    return plaintext.decode('ascii') if isinstance(plaintext, str) else plaintext
+    return plaintext.decode('ascii')
 
 def generate_aes_key_from_dh(dh_shared_secret):
     return dh_shared_secret[:32]
@@ -51,7 +54,7 @@ if __name__ == "__main__":
     print(type(key[0]))
 
     # Test message
-    message = "Hello, AES encryption using PyCryptodome!"
+    message = "Hello, world!"
     print(f"Original message: {message}")
 
     # Encrypt the message
