@@ -87,7 +87,7 @@ def EEA(a: int, b: int) -> Tuple[int, int, int]:
 
 def is_relative_prime(a:int, b:int) -> bool:
     return EEA(a, b)[0] == 1
-               
+
 def generate_prime(bytes: int=2, set_range: bool=True) -> int:
     ret = []
     target_range = range(2, 2**(8*bytes)) if not set_range else range(400, 501)
@@ -100,7 +100,7 @@ def generate_prime(bytes: int=2, set_range: bool=True) -> int:
     
     p = random.choice(ret)
     # print(ret)
-    print(p)
+    # print(p)
     return p
 
 def is_prime(n: int, strict: bool = True) -> bool:
