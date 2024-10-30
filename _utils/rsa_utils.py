@@ -2,9 +2,9 @@ from math_utils import generate_prime, generate_relative_prime, mod_inverse, is_
 import random
 import logging
 
-logging.basicConfig(level=logging.INFO)
 
-def generate_rsa_keypair():
+
+def generate_rsa_keypair() -> tuple[int, int, int, int]:
     p = generate_prime(2, True)
     q = generate_prime(2, True)
     while p == q:
@@ -20,21 +20,21 @@ def generate_rsa_keypair():
     logging.info("RSA keypair generated: e={}, d={}, n={}".format(e, d, n))
     return e, d, p, q
 
-def rsa_encrypt(message, public_key, n) -> int:
+def rsa_encrypt(message: bytes, public_key: int, n: int) -> int:
     e = public_key
     message_encoded = int.from_bytes(message.encode('ascii'), 'big') if isinstance(message, str) else int.from_bytes(message, 'big')
     ciphertext = pow(message_encoded, e, n)
     return ciphertext
 
 
-def rsa_decrypt(ciphertext: int, private_key, n, output_str = False):
+def rsa_decrypt(ciphertext: int, private_key: int, n: int, output_str: bool = False) -> bytes:
     d = private_key
     message_encoded = pow(ciphertext, d, n)
     message_length = (message_encoded.bit_length() + 7) // 8
     message_decoded = message_encoded.to_bytes(message_length, 'big').decode('ascii') if output_str else message_encoded.to_bytes(message_length, 'big')
     return message_decoded
 
-def verify_rsa_keypair(public_key, private_key, p, q):
+def verify_rsa_keypair(public_key: int, private_key: int, p: int, q: int) -> bool:
     e = public_key
     d = private_key
     n = p * q
@@ -60,6 +60,7 @@ def verify_rsa_keypair(public_key, private_key, p, q):
     
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     public_key, private_key, p, q = generate_rsa_keypair()
     verify_rsa_keypair(public_key, private_key, p, q)
 
