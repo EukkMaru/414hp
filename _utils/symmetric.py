@@ -44,11 +44,8 @@ def aes_decrypt(key: Union[bytes, List[bytes]], ciphertext:Union[str, bytes]) ->
     return plaintext.decode('ascii')
 
 def generate_aes_key_from_dh(dh_shared_secret: bytes) -> bytes:
-    # shared secret size is 2 bytes (express shared secret in bytes)
-    # repeat that 2 bytes 16 times to get 32 bytes (256 bits)
     return reduce(lambda x, y: x + y, [dh_shared_secret] * 16)
 
-# Test the functions if this script is run directly
 if __name__ == "__main__":
     # Generate a random AES key
     key = generate_aes_key(True)
