@@ -32,7 +32,7 @@ def generate_dh_keypair(p: int, g: int) -> tuple[int, int]:
 def compute_dh_shared_secret(private_key: int, other_public_key: int, p: int) -> int:
     return pow(other_public_key, private_key, p)
 
-def verify_dh_generator(g, p):
+def verify_dh_generator(g: int, p: int) -> bool:
     if g <= 1 or g >= p:
         return False
 
@@ -42,7 +42,7 @@ def verify_dh_generator(g, p):
             return False
     return True
 
-def factorize(n):
+def factorize(n: int) -> list:
     factors = []
     d = 2
     while n > 1:

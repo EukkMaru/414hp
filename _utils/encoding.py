@@ -3,8 +3,9 @@ import json
 import base64
 import warnings
 import functools
+from typing import Callable
 
-def deprecated(func):
+def deprecated(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         warnings.warn(

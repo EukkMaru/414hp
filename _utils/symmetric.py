@@ -7,7 +7,7 @@ from typing import Union, List
 from functools import reduce
 import base64
 
-def generate_aes_key(as_list:bool = False):
+def generate_aes_key(as_list:bool = False) -> Union[bytes, List[bytes]]:
     return get_random_bytes(32) if not as_list else [bytes([b]) for b in get_random_bytes(32)] # 32 bytes = 256 bits
     # return [b'|', b'y', b'S', b'\x00', b'\x00', b'\x85', b'\x0f', b'\x13', b'\x98', b'\xe1', b'\\', b'\x86', b'i', b'~', b'?', b'(', b'%', b'o', b'\xfe', b'\xc8', b'\x0c', b'\x13', b'\x94', b'\xab', b'c', b'q', b'\x0e', b'\xa3', b'\xaa', b'>', b'\x91', b'\x00']
     # return [b'|', b'y', b'S', b'\x03', b'\x00', b'\x85', b'\x0f', b'\x13', b'\x98', b'\xe1', b'\\', b'\x86', b'i', b'~', b'?', b'(', b'%', b'o', b'\xfe', b'\xc8', b'\x0c', b'\x13', b'\x94', b'\xab', b'c', b'q', b'\x0e', b'\xa3', b'\xaa', b'>', b'\x91', b'\x00']
