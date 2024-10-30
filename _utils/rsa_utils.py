@@ -4,7 +4,7 @@ import random
 import logging
 from .math_utils import mod_inverse, generate_prime, is_prime, is_generator, gcd
 
-def generate_rsa_keypair(bits=4):
+def generate_rsa_keypair(bits: int=4) -> tuple[int, int, int, int]:
     p = generate_prime(bits // 2, set_range=True)
     q = generate_prime(bits // 2, set_range=True)
     if p == q:
@@ -24,7 +24,7 @@ def generate_rsa_keypair(bits=4):
     
     return public_key, private_key, p, q
 
-def verify_rsa_keypair(public_key, private_key, p, q):
+def verify_rsa_keypair(public_key: int, private_key: int, p: int, q: int) -> bool:
     n = p * q
     e = public_key
     d = private_key
@@ -62,7 +62,7 @@ def verify_rsa_keypair(public_key, private_key, p, q):
     logging.debug("RSA keypair verified successfully")
     return True
 
-def rsa_encrypt(message: bytes, public_key, n):
+def rsa_encrypt(message: bytes, public_key: int, n: int) -> int:
     e = public_key
     try:
         m: int = int.from_bytes(message, 'big') if type(message) is bytes else int.from_bytes(str(message).encode('ascii'), 'big')
@@ -77,7 +77,7 @@ def rsa_encrypt(message: bytes, public_key, n):
         return pow(m, e, n) if type(m) is int else None
     
 
-def rsa_decrypt(ciphertext, private_key, n, return_bytes=False):
+def rsa_decrypt(ciphertext: int, private_key: int, n: int, return_bytes: bool=False) -> str:
     d = private_key
     try:
         # m: int = pow(ciphertext, d, n) if type(ciphertext) is int else pow(int.from_bytes(ciphertext, 'big'), d, n)
