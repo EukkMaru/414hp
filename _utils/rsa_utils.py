@@ -14,7 +14,7 @@ def generate_rsa_keypair() -> tuple[int, int, int, int]:
     e = generate_relative_prime(phi)
     # private key
     d = mod_inverse(e, phi)
-    logging.info("RSA keypair generated: e={}, d={}, n={}".format(e, d, n))
+    # logging.info("RSA keypair generated: e={}, d={}, n={}".format(e, d, n))
     return e, d, p, q
 
 def rsa_encrypt(message: bytes, public_key: int, n: int) -> int:
@@ -51,7 +51,7 @@ def verify_rsa_keypair(public_key: int, private_key: int, p: int, q: int) -> boo
     #     logging.error("Decrypted message is not the same as the original message: {} != {}".format(dec_M, test_M))
     #     return False
     
-    logging.info("RSA keypair is valid")
+    # logging.info("RSA keypair is valid")
     return True
     
     
