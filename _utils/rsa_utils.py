@@ -1,8 +1,5 @@
 from .math_utils import generate_prime, generate_relative_prime, mod_inverse, is_prime
-import random
 import logging
-
-
 
 def generate_rsa_keypair() -> tuple[int, int, int, int]:
     p = generate_prime(2, True)
@@ -25,7 +22,6 @@ def rsa_encrypt(message: bytes, public_key: int, n: int) -> int:
     message_encoded = int.from_bytes(message.encode('ascii'), 'big') if isinstance(message, str) else int.from_bytes(message, 'big')
     ciphertext = pow(message_encoded, e, n)
     return ciphertext
-
 
 def rsa_decrypt(ciphertext: int, private_key: int, n: int, return_bytes: bool=False) -> bytes:
     d = private_key
@@ -50,7 +46,7 @@ def verify_rsa_keypair(public_key: int, private_key: int, p: int, q: int) -> boo
     
     # test_M = random.randbytes(2)
     # enc_M = rsa_encrypt(test_M, public_key, n)
-    # dec_M = rsa_decrypt(enc_M, private_key, n, False)
+    # dec_M = rsa_decrypt(enc_M, private_key, n, True)
     # if dec_M != test_M:
     #     logging.error("Decrypted message is not the same as the original message: {} != {}".format(dec_M, test_M))
     #     return False
@@ -58,7 +54,7 @@ def verify_rsa_keypair(public_key: int, private_key: int, p: int, q: int) -> boo
     logging.info("RSA keypair is valid")
     return True
     
-
+    
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
     public_key, private_key, p, q = generate_rsa_keypair()
