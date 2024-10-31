@@ -156,8 +156,7 @@ def run(addr, port, autorun):
             print("1: RSA Key Generation")
             print("2: RSA Encryption and AES")
             print("3: Diffie-Hellman Key Exchange and AES")
-            print("4_1: DH with non-prime error")
-            print("4_2: DH with incorrect generator error")
+            print("4: Crash Server")
             print("5: Exit")
 
             choice = input("Enter your choice (1-3, or 5 to exit): ")
@@ -169,6 +168,9 @@ def run(addr, port, autorun):
                     run_protocol_2(conn)
                 elif choice == '3':
                     run_protocol_3(conn)
+                elif choice == '4':
+                    crash_msg = messaging.create_message(4, "", content="crash")
+                    messaging.send_message(conn, crash_msg)
                 elif choice == '5':
                     print("Exiting...")
                     break

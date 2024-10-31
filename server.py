@@ -6,6 +6,7 @@ import argparse
 import logging
 import json
 import base64
+from time import sleep
 
 from _utils import rsa_utils as rsa
 from _utils import dh_utils as dh
@@ -125,7 +126,7 @@ def handler(sock):
             message = None
             try:
                 message = messaging.receive_message(sock)
-                if not message or message is None:
+                if not message:
                     logging.info("Client disconnected")
                     break
                 logging.info(f"Received message: {message}")
@@ -136,6 +137,9 @@ def handler(sock):
                         handle_protocol_2(sock)
                     elif message['type'] == "DH":
                         handle_protocol_3(sock)
+                elif message['opcode'] == 4:
+                    sleep(1)
+                    break
             except json.JSONDecodeError as e:
                 logging.error(f"JSON Decode Error: {e}, message: {message}")
                 if message is None:
@@ -146,23 +150,36 @@ def handler(sock):
     except Exception as e:
         logging.error(f"Error handling connection: {e}")
     finally:
+        logging.debug("Closing client socket.")
         sock.close()
-
+        logging.debug("Client handler exiting.")
 
 def run(addr, port):
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind((addr, port))
-
     server.listen(10)
+    server.settimeout(1.0)
+
     logging.info("[*] Server is listening on {}:{}".format(addr, port))
 
-    while True:
-        conn, info = server.accept()
+    try:
+        while True:
+            try:
+                conn, info = server.accept()
+                logging.info("[*] Server accepts the connection from {}:{}".format(info[0], info[1]))
+                conn_handle = threading.Thread(target=handler, args=(conn,), daemon=True)
+                conn_handle.start()
+            except socket.timeout:
+                continue
+            except Exception as e:
+                logging.error(f"Error accepting connection: {e}")
+    except KeyboardInterrupt:
+        logging.info("Shutting down server.")
+    finally:
+        logging.info("Closing server socket.")
+        server.close()
+        logging.info("Server shutdown complete.")
 
-        logging.info("[*] Server accepts the connection from {}:{}".format(info[0], info[1]))
-
-        conn_handle = threading.Thread(target=handler, args=(conn,))
-        conn_handle.start()
 
 def command_line_args():
     parser = argparse.ArgumentParser()
