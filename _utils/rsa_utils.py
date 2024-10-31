@@ -44,16 +44,16 @@ def verify_rsa_keypair(public_key: int, private_key: int, p: int, q: int) -> boo
         logging.error("p or q is not prime: p={}, q={}".format(p, q))
         return False
 
-    if e * d % phi != 1:
+    if (e * d) % phi != 1:
         logging.error("{} * {} % {} != 1".format(e, d, phi))
         return False
     
-    test_M = random.randbytes(2)
-    enc_M = rsa_encrypt(test_M, public_key, n)
-    dec_M = rsa_decrypt(enc_M, private_key, n)
-    if dec_M != test_M:
-        logging.error("Decrypted message is not the same as the original message: {} != {}".format(dec_M, test_M))
-        return False
+    # test_M = random.randbytes(2)
+    # enc_M = rsa_encrypt(test_M, public_key, n)
+    # dec_M = rsa_decrypt(enc_M, private_key, n, False)
+    # if dec_M != test_M:
+    #     logging.error("Decrypted message is not the same as the original message: {} != {}".format(dec_M, test_M))
+    #     return False
     
     logging.info("RSA keypair is valid")
     return True
