@@ -1,4 +1,4 @@
-from math_utils import generate_prime, generate_relative_prime, mod_inverse, is_prime
+from .math_utils import generate_prime, generate_relative_prime, mod_inverse, is_prime
 import random
 import logging
 
@@ -27,11 +27,11 @@ def rsa_encrypt(message: bytes, public_key: int, n: int) -> int:
     return ciphertext
 
 
-def rsa_decrypt(ciphertext: int, private_key: int, n: int, output_str: bool = False) -> bytes:
+def rsa_decrypt(ciphertext: int, private_key: int, n: int, return_bytes: bool=False) -> bytes:
     d = private_key
     message_encoded = pow(ciphertext, d, n)
     message_length = (message_encoded.bit_length() + 7) // 8
-    message_decoded = message_encoded.to_bytes(message_length, 'big').decode('ascii') if output_str else message_encoded.to_bytes(message_length, 'big')
+    message_decoded = message_encoded.to_bytes(message_length, 'big').decode('ascii') if not return_bytes else message_encoded.to_bytes(message_length, 'big')
     return message_decoded
 
 def verify_rsa_keypair(public_key: int, private_key: int, p: int, q: int) -> bool:
