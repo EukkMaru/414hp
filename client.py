@@ -103,7 +103,7 @@ def run_protocol_3(conn):
 
     p = int(response['parameter']['p'])
     g = int(response['parameter']['g'])
-    server_public = int(encoding.strdecode(response['public']))
+    server_public = response['public'] if isinstance(response['public'], int) else int(encoding.strdecode(response['public']))
     logging.debug(f"Received DH parameters: p: {p}, g: {g}")
 
     if not math.is_prime(p):
@@ -119,7 +119,8 @@ def run_protocol_3(conn):
 
     private_key, public_key = dh.generate_dh_keypair(p, g)
     # private_key = b, public_key = g^b mod p
-    dh_response = messaging.create_message(1, "DH", public=encoding.strencode(str(public_key)), parameter={"p": p, "g": g})
+    # dh_response = messaging.create_message(1, "DH", public=encoding.strencode(str(public_key)), parameter={"p": p, "g": g})
+    dh_response = messaging.create_message(1, "DH", public=public_key, parameter={"p": p, "g": g})
     logging.debug(f"Sending DH response: {dh_response}")
     messaging.send_message(conn, dh_response)
 

@@ -88,7 +88,8 @@ def handle_protocol_3(conn):
     logging.debug(f"Private key: {private_key}\n Public key: {public_key}")
     
     response = messaging.create_message(1, "DH", 
-                                        public=encoding.strencode(str(public_key)),
+                                        # public=encoding.strencode(str(public_key)),
+                                        public=public_key,
                                         parameter={"p": p, "g": g})
     logging.debug(f"Sending RSA response: {response}")
     messaging.send_message(conn, response)
@@ -101,7 +102,7 @@ def handle_protocol_3(conn):
         logging.error("Unexpected message from client")
         return
 
-    client_public = int(encoding.strdecode(client_response['public']))
+    client_public = client_response['public'] if isinstance(client_response['public'], int) else int(encoding.strdecode(client_response['public']))
     shared_secret = dh.compute_dh_shared_secret(private_key, client_public, p)
     aes_key = sym.generate_aes_key_from_dh(int.to_bytes(shared_secret, 2, 'big'))
     logging.debug(f"Shared secret: {shared_secret}\nByte representation: {int.to_bytes(shared_secret, 2, 'big')}\nAES key: {aes_key.hex()}")
