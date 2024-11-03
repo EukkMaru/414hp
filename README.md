@@ -18,10 +18,10 @@ Our team name is "414HP." This number is derived from the combined horsepower of
 plus an additional 1 horsepower contributed by man power of all team members.
 
 ### Contribution 
-* **유선오** : Team Leader(God), Message/Network
+* **유선오** : Team Leader(God), Message/Network, Encoding, Code merging, Testing, Debugging/Bugfixes
 * **정시훈** : DH
 * **성영주** : RSA
-* **정수빈** : Encoding
+* **정수빈** : Math
 * **한승우** : Symmetric Key
 
 ## Recommended system
