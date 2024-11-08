@@ -101,8 +101,7 @@ def generate_prime(bytes: int=2) -> int:
             continue
     
     p = random.choice(ret)
-    print(ret)
-    return ret
+    return p
 
 def mod_inverse(a, m):
     if is_relative_prime(a, m) == True:
