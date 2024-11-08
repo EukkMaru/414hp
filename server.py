@@ -6,6 +6,7 @@ import argparse
 import logging
 import json
 import base64
+import random
 from time import sleep
 
 from _utils import rsa_utils as rsa
@@ -79,9 +80,9 @@ def handle_protocol_3(conn):
     global args
     p, g = dh.generate_dh_params(2048)  # Use appropriate bit length
     if args.error == 1:
-        p = 420
+        p = next(x for x in iter(lambda: random.randint(400, 500), None) if not math.is_prime(x))
     elif args.error == 2:
-        g = 1
+        g = next(x for x in iter(lambda: random.randint(1, p-1), None) if not math.is_generator(x, p))
     logging.debug(f"p: {p}, g: {g}")
     private_key, public_key = dh.generate_dh_keypair(p, g)
     # private_key = a, public_key = g^a mod p
