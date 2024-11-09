@@ -16,7 +16,7 @@ def find_generators(n: int) -> list[int]:
     return generators
 
 def generate_dh_params(bits: int=4) -> tuple[int, int]:
-     p = generate_prime(bits)
+     p = generate_prime(bits, True)
      generators = find_generators(p)
      g = random.choice(generators)
      return p, g
