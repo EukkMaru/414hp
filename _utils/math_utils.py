@@ -107,8 +107,8 @@ def is_relative_prime(a:int, b:int) -> bool:
     else:
         return False
 
-def generate_prime(bytes: int=2, range: bool = False) -> int:
-    r = range(2, 2**(8*bytes)) if not range else range(400, 501)
+def generate_prime(bytes: int=2, set_range: bool = False) -> int:
+    r = range(2, 2**(8*bytes)) if not set_range else range(400, 501)
     ret = []
     for i in r:
         if is_prime_1(i) == True: # You can choose primarily test
@@ -131,6 +131,9 @@ def mod_inverse(a, m):
 
 def gcd(a, b):
     return EEA(a, b)[0]
+
+def is_prime(p: int, strict: bool = True):
+    return is_prime_1(p) if strict else is_prime_3(p)
 
 def generate_relative_prime(n: int) -> int:
     ret = []
