@@ -107,17 +107,17 @@ def is_relative_prime(a:int, b:int) -> bool:
     else:
         return False
 
-def generate_prime(bytes: int=2) -> int:
+def generate_prime(bytes: int=2, range: bool = False) -> int:
+    r = range(2, 2**(8*bytes)) if not range else range(400, 501)
     ret = []
-    for i in range(2, 2**(8*bytes)):
+    for i in r:
         if is_prime_1(i) == True: # You can choose primarily test
             ret.append(i)
         elif is_prime_1(i) == False: # You can choose primarily test
             continue
     
     p = random.choice(ret)
-    print(ret)
-    return ret
+    return p
 
 def mod_inverse(a, m):
     if is_relative_prime(a, m) == True:
