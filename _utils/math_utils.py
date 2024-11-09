@@ -2,7 +2,7 @@
 import random
 from typing import *
 
-__all__ = ["is_prime", "generate_prime", "mod_exp", "mod_inverse", "gcd", "discrete_log"]
+__all__ = ["is_prime", "is_generator", "generate_prime", "mod_exp", "mod_inverse", "gcd", "discrete_log"]
 
 # def _new_func():
 
@@ -12,15 +12,30 @@ def gauss_func(n: float) -> int:
     return int(n) 
 
 
-def is_generater(i:int, n: int) -> bool:
-    if n <= 1:
+def is_generator(g: int, p: int) -> bool:
+    if g <= 1 or g >= p:
         return False
-    a = set()
-    for j in range(1,n):
-        mod = pow(i, j, n)
-        a.add(mod)
 
-    return len(a) == n - 1 
+    factors = factorize(p - 1)
+    for q in factors:
+        if pow(g, (p - 1) // q, p) == 1:
+            return False
+    return True
+
+def factorize(n: int) -> list:
+    factors = []
+    d = 2
+    while n > 1:
+        while n % d == 0:
+            if d not in factors:
+                factors.append(d)
+            n //= d
+        d += 1
+        if d * d > n:
+            if n > 1:
+                factors.append(n)
+            break
+    return factors
 
 def is_prime_1(n: int) -> bool: # Trial Devision
     if n <= 1:
@@ -40,7 +55,7 @@ def is_prime_2(n: int) -> bool: # fermat's primarily test
         return True
     
     for i in range(2, n+1):
-        if is_generater(i, n) == True:
+        if is_generator(i, n) == True:
             return i
         break
 
