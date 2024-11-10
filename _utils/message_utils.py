@@ -3,6 +3,7 @@
 import json
 import base64
 import socket
+import logging
 
 __all__ = ['create_message', 'parse_message', 'send_message', 'receive_message', 'create_error_message', 'handle_error_message']
 
@@ -28,7 +29,9 @@ def send_message(sock: socket.socket, message: dict) -> None:
 
 def receive_message(sock: socket.socket) -> dict:
     data = sock.recv(4096)
-    return parse_message(data.decode())
+    parsed = parse_message(data.decode())
+    logging.info(f"Connection received: {parsed}")
+    return parsed
 
 def create_error_message(error_type: str) -> dict:
     return create_message(3, "error", error=error_type)

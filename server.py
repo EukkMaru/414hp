@@ -131,7 +131,7 @@ def handler(sock):
                 if not message:
                     logging.info("Client disconnected")
                     break
-                logging.info(f"Received message: {message}")
+                # logging.info(f"Received message: {message}")
                 if message['opcode'] == 0:
                     if message['type'] == "RSAKey":
                         handle_protocol_1(sock)
