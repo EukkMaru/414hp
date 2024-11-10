@@ -17,10 +17,9 @@ def aes_encrypt(key: Union[bytes, List[bytes]], plaintext: Union[str, bytes]) ->
     if isinstance(key, list):
         key = bytes(key)  #List of bytes -> single byte string
 
-    iv = get_random_bytes(16)
-    cipher = AES.new(key, AES.MODE_CBC, iv)
+    cipher = AES.new(key, AES.MODE_ECB, iv)
     padded_data = pad(plaintext.encode(), AES.block_size)
-    ciphertext = iv + cipher.encrypt(padded_data)
+    ciphertext = cipher.encrypt(padded_data)
     return ciphertext
 
 def aes_decrypt(key: Union[bytes, List[bytes]], ciphertext:Union[str, bytes]) -> str:
@@ -29,8 +28,7 @@ def aes_decrypt(key: Union[bytes, List[bytes]], ciphertext:Union[str, bytes]) ->
     if isinstance(key, list):
         key = bytes(key)
     
-    iv, ciphertext = ciphertext[:16], ciphertext[16:]  #iv 암호문 분리
-    cipher = AES.new(key, AES.MODE_CBC, iv)
+    cipher = AES.new(key, AES.MODE_ECB)
     padded_plaintext = cipher.decrypt(ciphertext)
     plaintext = unpad(padded_plaintext, AES.block_size)
 
