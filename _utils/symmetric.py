@@ -59,3 +59,4 @@ if __name__ == "__main__":
     # print(f"Generated DH shared secret: {dh_secret}")
     # derived_key = derive_aes_key_from_dh(dh_secret)
     # print(f"Derived AES key from DH shared secret: {derived_key}\nKey length: {len(derived_key)}")
+    pass
