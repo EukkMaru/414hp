@@ -16,29 +16,29 @@ def deprecated(func: Callable) -> Callable:
         return func(*args, **kwargs)
     return wrapper
 
-__all__ = ['int_to_bytes', 'bytes_to_int', 'strencode', 'strdecode', 'byteencode', 'bytedecode']
+__all__ = ['int_to_bytes', 'bytes_to_int', 'serialize_key', 'deserialize_key']
 
 def int_to_bytes(x: int) -> bytes:
-    pass
+    return x.to_bytes((x.bit_length() + 7) // 8, byteorder='big')
 
 def bytes_to_int(xbytes: bytes) -> int:
-    pass
+    return int.from_bytes(xbytes, byteorder='big')
 
 def strencode(source: str) -> str:
     """문자열을 base64 문자열로 변환"""
-    pass
+    return base64.b64encode(source.encode('ascii')).decode('ascii')
 
 def strdecode(source: str) -> str:
     """base64 문자열을 원문으로 변환"""
-    pass
+    return base64.b64decode(source.encode('ascii')).decode('ascii')
 
 def byteencode(source: bytes) -> str:
     """비트스트링을 base64 문자열로 변환"""
-    pass
+    return base64.b64encode(source).decode('ascii')
 
 def bytedecode(source: str) -> bytes:
     """base64 문자열을 비트스트링로 변환"""
-    pass
+    return base64.b64decode(source)
 
 @deprecated
 def serialize_key(key: dict) -> str:
@@ -56,4 +56,23 @@ def deserialize_key(key_str: str) -> dict:
 # 프로토콜 업데이트 전 사용한 함수입니다
 
 if __name__ == "__main__":
-    pass
+    original_int = 123456789
+    byte_string = int_to_bytes(original_int)
+    recovered_int = bytes_to_int(byte_string)
+    print(f"Original int: {original_int}")
+    print(f"Byte string: {byte_string}")
+    print(f"Recovered int: {recovered_int}")
+    print(f"Conversion successful: {original_int == recovered_int}")
+
+    original_key = {'n': 1234567890, 'e': 65537}
+    serialized = serialize_key(original_key)
+    deserialized = deserialize_key(serialized)
+    print(f"\nOriginal key: {original_key}")
+    print(f"Serialized key: {serialized}")
+    print(f"Deserialized key: {deserialized}")
+    print(f"Serialization successful: {original_key == deserialized}")
+    
+    test_str = "Hello, World!"
+    print(f"Original string: {test_str}")
+    print(f"Base64 encoded string: {strencode(test_str)}")
+    print(f"Base64 decoded string: {strdecode(strencode(test_str))}")
