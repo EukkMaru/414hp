@@ -35,7 +35,9 @@ def aes_decrypt(key: Union[bytes, List[bytes]], ciphertext:Union[str, bytes]) ->
     return plaintext.decode('ascii')
 
 def generate_aes_key_from_dh(dh_shared_secret: bytes) -> bytes:
-    return (dh_shared_secret * (32 // len(dh_shared_secret) + 1))[:32]
+    # use this if below code fails FSR
+    # return (dh_shared_secret * (32 // len(dh_shared_secret) + 1))[:32]
+    return reduce(lambda x, y: x + y, [dh_shared_secret] * 16)
 
 if __name__ == "__main__":
     key = generate_aes_key(as_list=True)
