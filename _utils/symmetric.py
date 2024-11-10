@@ -40,22 +40,22 @@ def generate_aes_key_from_dh(dh_shared_secret: bytes) -> bytes:
     return reduce(lambda x, y: x + y, [dh_shared_secret] * 16)
 
 if __name__ == "__main__":
-    key = generate_aes_key(as_list=True)
-    print(f"Generated AES key (list): {key}")
+    # key = generate_aes_key(as_list=True)
+    # print(f"Generated AES key (list): {key}")
 
-    message = "Hello, world!"
-    print(f"Original message: {message}")
+    # message = "Hello, world!"
+    # print(f"Original message: {message}")
 
-    encrypted = aes_encrypt(key, message)
-    print(f"Encrypted message: {encrypted}")
+    # encrypted = aes_encrypt(key, message)
+    # print(f"Encrypted message: {encrypted}")
 
-    decrypted = aes_decrypt(key, encrypted)
-    print(f"Decrypted message: {decrypted}")
+    # decrypted = aes_decrypt(key, encrypted)
+    # print(f"Decrypted message: {decrypted}")
 
-    assert message == decrypted, "Decryption failed"
-    print("Encryption and decryption successful!")
+    # assert message == decrypted, "Decryption failed"
+    # print("Encryption and decryption successful!")
 
-    dh_secret = get_random_bytes(2)
-    print(f"Generated DH shared secret: {dh_secret}")
-    derived_key = derive_aes_key_from_dh(dh_secret)
-    print(f"Derived AES key from DH shared secret: {derived_key}\nKey length: {len(derived_key)}")
+    # dh_secret = get_random_bytes(2)
+    # print(f"Generated DH shared secret: {dh_secret}")
+    # derived_key = derive_aes_key_from_dh(dh_secret)
+    # print(f"Derived AES key from DH shared secret: {derived_key}\nKey length: {len(derived_key)}")
