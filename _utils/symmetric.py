@@ -17,7 +17,7 @@ def aes_encrypt(key: Union[bytes, List[bytes]], plaintext: Union[str, bytes]) ->
     if isinstance(key, list):
         key = bytes(key)  #List of bytes -> single byte string
 
-    cipher = AES.new(key, AES.MODE_ECB, iv)
+    cipher = AES.new(key, AES.MODE_ECB)
     padded_data = pad(plaintext.encode(), AES.block_size)
     ciphertext = cipher.encrypt(padded_data)
     return ciphertext
