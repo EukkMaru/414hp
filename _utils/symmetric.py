@@ -34,7 +34,7 @@ def aes_decrypt(key: Union[bytes, List[bytes]], ciphertext:Union[str, bytes]) ->
     padded_plaintext = cipher.decrypt(ciphertext)
     plaintext = unpad(padded_plaintext, AES.block_size)
 
-    return plaintext.decode('utf-8')
+    return plaintext.decode('ascii')
 
 def generate_aes_key_from_dh(dh_shared_secret: bytes) -> bytes:
     return (dh_shared_secret * (32 // len(dh_shared_secret) + 1))[:32]
